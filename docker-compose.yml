@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  produtor:
+    build: ./produtor
+    container_name: produtor
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./produtor/logs:/usr/src/app/logs
+    command: python -u sysmeimei-ac-server.py
+
+  consumidor:
+    build: ./consumidor
+    container_name: consumidor
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    # volumes:
+    #   - ./produtor:/usr/src/app
+    command: python -u sysmeimei-ac-consumer.py
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_server
+    ports:
+      - "5672:5672"     # Porta para comunicação AMQP
+      - "15672:15672"   # Porta para o painel de administração web
+    volumes:
+      - ./rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+
+  retry-logs:
+    build: ./retry
+    container_name: retry-logs
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./produtor/logs:/usr/src/app/logs
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - LOG_DIR=logs
+    command: python -u retry-logs.py
