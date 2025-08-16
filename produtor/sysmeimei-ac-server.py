@@ -1,6 +1,7 @@
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import json, os, pika, time, socket
+from zoneinfo import ZoneInfo
+import json, os, pika, socket
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
@@ -34,7 +35,7 @@ def connect_rabbitmq():
 connect_rabbitmq()
 
 def publish_message(perfil: str, area: str, payload: dict):
-    agora = datetime.now()
+    agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
     payload["attendance_date"] = agora.strftime("%Y-%m-%d")
     payload["attendance_time"] = agora.strftime("%H:%M:%S")
 
