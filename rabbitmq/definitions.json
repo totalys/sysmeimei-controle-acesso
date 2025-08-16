@@ -1,0 +1,35 @@
+{
+  "users": [
+    {
+      "name": "lm_access",
+      "password": "lm_access",
+      "tags": "management"
+    },
+    {
+      "name": "admin",
+      "password": "admin",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "lm_access",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

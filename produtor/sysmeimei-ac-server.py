@@ -1,19 +1,24 @@
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import json, os, pika, time
+import json, os, pika, time, socket
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
+SERVER_PORT = int(os.getenv("SERVER_PORT", 8000))  # Porta do servidor HTTP parametrizada
 QUEUE_NAME = os.getenv("QUEUE_NAME", "lar_meimei_access")
 
 connection = None
 channel = None
+credentials = pika.PlainCredentials(
+    os.getenv("RABBITMQ_USER"),
+    os.getenv("RABBITMQ_PASS")
+)
 
 def connect_rabbitmq():
-    global connection, channel
+    global connection, channel, credentials
     try:
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT)
+            pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials)
         )
         channel = connection.channel()
         channel.queue_declare(queue=QUEUE_NAME, durable=True)
@@ -30,7 +35,7 @@ connect_rabbitmq()
 
 def publish_message(perfil: str, area: str, payload: dict):
     agora = datetime.now()
-    payload["attendance_date"] = agora.strftime("%y-%m-%d")
+    payload["attendance_date"] = agora.strftime("%Y-%m-%d")
     payload["attendance_time"] = agora.strftime("%H:%M:%S")
 
     global channel
@@ -53,7 +58,7 @@ def publish_message(perfil: str, area: str, payload: dict):
                 }
             )
         )
-        print(f"[→] Mensagem publicada: perfil={perfil}, area={area}, payload={payload}")
+        print(f"[→] Mensagem publicada: perfil={perfil}, area={area}, payload={payload}", flush=True)
     except Exception as e:
         print(f"[!] Falha ao publicar no RabbitMQ: {e}")
         # Marca canal como indisponível
@@ -107,10 +112,23 @@ class QRCodeRequestHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+def get_host_ip():
+    try:
+        # Tenta descobrir o IP do host na rede local
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "IP_DO_HOST"
+
 def run_server(port=8000):
     server_address = ('0.0.0.0', port)
     httpd = HTTPServer(server_address, QRCodeRequestHandler)
+    host_ip = get_host_ip()
     print(f"Servidor iniciado na porta {port}")
+    print(f"Acesse o endpoint via: http://{host_ip}:{port}/test.py (use o IP do host na rede local)", flush=True)
     httpd.serve_forever()
     connection.close()
 

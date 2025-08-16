@@ -9,11 +9,19 @@ RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
 QUEUE_NAME = os.getenv("QUEUE_NAME", "lar_meimei_access")
 LOG_DIR = os.getenv("LOG_DIR", "logs")
 
+connection = None
+channel = None
+credentials = pika.PlainCredentials(
+    os.getenv("RABBITMQ_USER"),
+    os.getenv("RABBITMQ_PASS")
+)
+
 def connect_rabbitmq():
+    global connection, channel, credentials
     while True:
         try:
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT)
+                pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials)
             )
             channel = connection.channel()
             channel.queue_declare(queue=QUEUE_NAME, durable=True)

@@ -9,6 +9,9 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=lm_access
+      - RABBITMQ_PASS=lm_access
+      - SERVER_PORT=8000   # <--- Adicione esta linha
     ports:
       - "8000:8000"
     volumes:
@@ -23,10 +26,14 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-      - EMPLOYEE_URL="https://larmeimei.org/api/resource/LM%20Attendance"
-      - CUSTOMER_URL="https://larmeimei.org/api/resource/LM%20Attendance%20cst"
-    # volumes:
-    #   - ./produtor:/usr/src/app
+      - RABBITMQ_USER=lm_access
+      - RABBITMQ_PASS=lm_access
+      - QUEUE_NAME=lar_meimei_access
+      - DEADLETTER_QUEUE=lar_meimei_access_errors
+      - EMPLOYEE_URL=https://larmeimei.org/api/resource/LM%20Attendance
+      - CUSTOMER_URL=https://larmeimei.org/api/resource/LM%20Attendance%20cst
+    volumes:
+      - ./consumidor/logs:/usr/src/app/logs
     command: python -u sysmeimei-ac-consumer.py
 
   rabbitmq:
@@ -37,6 +44,8 @@ services:
       - "15672:15672"   # Porta para o painel de administração web
     volumes:
       - ./rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
@@ -51,5 +60,7 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=lm_access
+      - RABBITMQ_PASS=lm_access
       - LOG_DIR=logs
     command: python -u retry-logs.py
