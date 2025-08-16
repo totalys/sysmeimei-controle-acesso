@@ -23,6 +23,8 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
+      - EMPLOYEE_URL="https://larmeimei.org/api/resource/LM%20Attendance"
+      - CUSTOMER_URL="https://larmeimei.org/api/resource/LM%20Attendance%20cst"
     # volumes:
     #   - ./produtor:/usr/src/app
     command: python -u sysmeimei-ac-consumer.py
