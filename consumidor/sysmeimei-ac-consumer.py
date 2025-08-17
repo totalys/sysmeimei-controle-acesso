@@ -82,7 +82,12 @@ def main():
     while True:
         try:
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials)
+                pika.ConnectionParameters(
+                    host=RABBITMQ_HOST,
+                    port=RABBITMQ_PORT,
+                    credentials=credentials,
+                    heartbeat=30
+                )
             )
             channel = connection.channel()
             channel.queue_declare(queue=QUEUE_NAME, durable=True)

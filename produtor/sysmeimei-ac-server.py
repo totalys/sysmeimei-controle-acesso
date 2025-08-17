@@ -2,6 +2,7 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from zoneinfo import ZoneInfo
 import json, os, pika, socket
+import time
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))
@@ -19,7 +20,12 @@ def connect_rabbitmq():
     global connection, channel, credentials
     try:
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT, credentials=credentials)
+            pika.ConnectionParameters(
+                host=RABBITMQ_HOST,
+                port=RABBITMQ_PORT,
+                credentials=credentials,
+                heartbeat=30
+            )
         )
         channel = connection.channel()
         channel.queue_declare(queue=QUEUE_NAME, durable=True)
@@ -40,31 +46,39 @@ def publish_message(perfil: str, area: str, payload: dict):
     payload["attendance_time"] = agora.strftime("%H:%M:%S")
 
     global channel
-    if channel is None:
-        # Tenta reconectar antes de desistir
-        if not connect_rabbitmq():
-            save_locally(payload)
-            return
+    retry_delays = [1, 5, 10]  # segundos
 
-    try:
-        channel.basic_publish(
-            exchange="",
-            routing_key=QUEUE_NAME,
-            body=json.dumps(payload),
-            properties=pika.BasicProperties(
-                delivery_mode=2,
-                headers={
-                    "perfil": perfil,
-                    "area": area
-                }
+    for attempt, delay in enumerate(retry_delays, start=1):
+        if channel is None or getattr(channel, "is_closed", False):
+            print(f"[!] Canal RabbitMQ desconectado, tentativa {attempt} de reconexão...", flush=True)
+            if not connect_rabbitmq():
+                print(f"[!] Falha ao reconectar. Aguardando {delay}s antes da próxima tentativa...", flush=True)
+                time.sleep(delay)
+                continue
+        try:
+            channel.basic_publish(
+                exchange="",
+                routing_key=QUEUE_NAME,
+                body=json.dumps(payload),
+                properties=pika.BasicProperties(
+                    delivery_mode=2,
+                    headers={
+                        "perfil": perfil,
+                        "area": area
+                    }
+                )
             )
-        )
-        print(f"[→] Mensagem publicada: perfil={perfil}, area={area}, payload={payload}", flush=True)
-    except Exception as e:
-        print(f"[!] Falha ao publicar no RabbitMQ: {e}")
-        # Marca canal como indisponível
-        channel = None
-        save_locally(payload)
+            print(f"[→] Mensagem publicada: perfil={perfil}, area={area}, payload={payload}", flush=True)
+            return  # sucesso, não precisa tentar mais
+        except Exception as e:
+            print(f"[!] Falha ao publicar no RabbitMQ (tentativa {attempt}): {e}", flush=True)
+            channel = None
+            print(f"[!] Aguardando {delay}s antes da próxima tentativa...", flush=True)
+            time.sleep(delay)
+
+    # Se chegou aqui, todas as tentativas falharam
+    print("[!] Todas as tentativas de publicação falharam. Salvando localmente.", flush=True)
+    save_locally(payload)
 
 def save_locally(payload):
     agora = datetime.now()
