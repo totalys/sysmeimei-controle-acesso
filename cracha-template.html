@@ -1,0 +1,35 @@
+<div class="wrapper">
+ {% for crigr in doc.students %} 
+    {% set stu = frappe.get_doc('Student', crigr.student) %}
+    {% set prg = frappe.get_doc('Program', doc.program) %}
+    
+  <div class="Frente">
+      {% if stu.imagem != null %}
+      <div class="Foto"><img src="{{ stu.imagem }}"></div>
+      {% endif %}
+      
+      
+      
+      <div class="logo"><img src="/files/Lar Meimei Logo2a29a0 v2.png" alt="Logo Lar Meimei" height="70%" width="70%"></div>
+      <div class="QRCode"><img alt="qr code indisponível" src="https://api.qrserver.com/v1/create-qr-code/?data={&quot;perfil&quot;:&quot;usuario&quot;,&quot;area&quot;:&quot;{{ frappe.db.get_value("Program", doc.program, "segmento") }}&quot;,&quot;customer&quot;:&quot;{{ stu.assistido }}&quot;,&quot;student&quot;:&quot;{{ stu.name }}&quot;,&quot;turma&quot;:&quot;{{ doc.student_group_name }}&quot;}&amp;size=100x100"></div>
+      <div class="Nome_Cracha"><b>{{ stu.nome_cracha }}</b></div>
+      <div class="Nome_Completo"> {{ crigr.student_name }}</div>
+      <div class="Turma"><b>{{ doc.student_group_name }}</b></div>
+      <div class="Tipo"><b>{{ prg.segmento }}</b></div>
+  </div>
+  <div class="Verso">
+      <div class="Topo"><b><u>{{ prg.top }}</u></b><br></div>
+      <div class="Info1"><b><u>{{ prg.info1 }}</u></b><br></div>
+      <div class="Info2"><b><u>{{ prg.horario }}</u></b><br></div>
+      {% if doc.program == "115-PN Apoio à Gestante" %}
+      {% set assistido_encoded = stu.assistido | replace(' ', '%20') | urlencode  %}
+      <div class="Info3"><b><u>Escaneie o código abaixo para acessar os dados de cadastro em caso de emergências</u></b><br></div>
+      <div class="Info4"><img alt="qr code indisponível" src="https://api.qrserver.com/v1/create-qr-code/?data=https://larmeimei.org/app/lm-gestante-ficha?assistido={{ assistido_encoded }}&amp;size=100x100"></div>
+      {% endif %}
+      <div class="Bottom"><br>{{ frappe.db.get_value("Program", doc.program, "bottom") }}&nbsp;</div>
+  </div>
+  {% if crigr.idx % 4 ==0 %}
+    <div class="page-break"></div>
+  {% endif %}
+ {% endfor %}
+</div>

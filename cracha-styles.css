@@ -1,0 +1,144 @@
+.wrapper {
+  display: grid;
+  grid-template-columns: 370px 370px;
+  column-gap: 10px;
+  font-family: Arial;
+  margin-top: 2px;
+}
+
+.Frente {
+  display: grid;
+  grid-template-rows: 100px 40px 25px 25px 25px;
+  grid-column: 1;
+  grid-template-columns: 240px 120px;
+  border: 1px solid darkblue;
+  border-radius: 10px;
+  margin-bottom: 2px;
+}
+
+.Foto {
+  margin-left: 5px;
+  grid-row: 1/5;
+  grid-column: 1/3;
+  margin-top: 5px;
+  max-height: 70px;
+  max-width: 70px;
+  width: auto;
+  height: auto;
+}
+
+.logo {
+  grid-row: 1/5;
+  grid-column: 2/3;
+  margin-top: 5px;
+  max-width: 210px;
+  max-height: 112px;
+  width: auto;
+  height: auto;
+}
+
+/* When there's a photo, center the logo */
+.Frente:has(.Foto img) .logo {
+  margin-left: -120px;
+}
+
+/* When there's no photo, position logo in top-left */
+.Frente:not(:has(.Foto img)) .logo {
+  grid-column: 1/3;
+  margin-left: 5px;
+}
+
+.QRCode {
+  grid-row: 1/5;
+  grid-column: 3/3;
+  margin-left: -75px;
+  margin-top: 5px;
+  margin-right: 5px;
+  font-size: 0.7em;
+  text-align: center;
+}
+
+.Nome_Cracha {
+  grid-row: 2/5;
+  grid-column: 1/3;
+  /*border: 2px solid darkblue;*/
+  text-align: center;
+  font-weight: bold;
+  font-size: x-large;
+  margin-left: 5.5px;
+  text-transform: uppercase;
+}
+
+.Nome_Completo {
+  grid-row: 3/5;
+  grid-column: 1/3;
+  /*border: 2px solid darkblue;*/
+  text-align: center;
+  font-size: small;
+  vertical-align: middle;
+  margin-left: 5.5px;
+}
+
+.Turma {
+  grid-row: 4/5;
+  grid-column: 1/3;
+  vertical-align: middle;
+  text-align: center;
+  margin-left: 5.5px;
+}
+
+
+.Tipo {
+ grid-row: 5/5;
+ grid-column: 1/3;
+ text-align: center;
+ vertical-align: middle;
+}
+
+.Verso {
+  display: grid;
+  grid-column: 2;
+  grid-template-columns: 240px 120px;
+  border: 1px solid darkblue;
+  border-radius: 10px;
+  font-size: xx-small;
+  margin-bottom: 2px;
+}
+
+.Topo {
+ grid-column: 1 / 3;
+ text-align: center;
+ font-weight: bold;
+ font-size: x-large;
+ margin-left: 5.5px;
+}
+
+.Info1 {
+ grid-column: 1 / 3;
+ text-align: center;
+ font-weight: bold;
+}
+
+.Info2 {
+ grid-column: 1 / 3;
+ text-align: center;
+ font-weight: bold;
+}
+
+.Info3 {
+ grid-column: 1 / 3;
+ text-align: center;
+}
+
+.Info4 {
+ grid-column: 1 / 3;
+ text-align: center;
+ font-weight: bold;
+}
+
+.Bottom {
+  grid-column: 1 / 3;
+  grid-row: 11/11;
+  text-align: center;
+  font-weight: bold;
+}
